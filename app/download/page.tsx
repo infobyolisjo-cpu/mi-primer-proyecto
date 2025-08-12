@@ -1,50 +1,68 @@
 'use client';
 
+import { useEffect, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
-
-const copy = {
-  es: {
-    title: 'Descarga tu archivo',
-    auto: 'Tu ZIP se descargará automáticamente.',
-    fail: 'Faltan datos. Por favor vuelve a generar y pagar.',
-    tip: 'Si no inicia la descarga, revisa bloqueadores de pop-ups o abre el enlace directo.',
-  },
-  en: {
-    title: 'Download your file',
-    auto: 'Your ZIP will download automatically.',
-    fail: 'Missing data. Please go back, generate and pay.',
-    tip: 'If it does not start, check pop-up blockers or open the direct link.',
-  },
-};
+import { normalizeLang, t } from '@/lib/i18n';
 
 export default function DownloadPage() {
   const params = useSearchParams();
-  const lang = (params.get('lang') === 'en' ? 'en' : 'es') as 'es' | 'en';
-  const t = copy[lang];
+
+  const lang = normalizeLang(params.get('lang'));
+  const copy = useMemo(() => t(lang), [lang]);
 
   const file = params.get('file') || 'brand-kit-lite.zip';
-  const hasData = !!file;
+  const hasData = Boolean(params.get('file'));
+
+  // Auto-descarga si hay datos
+  useEffect(() => {
+    if (!hasData) return;
+    const a = document.createElement('a');
+    a.href = `/api/zip?file=${encodeURIComponent(file)}`; // tu endpoint ZIP
+    a.download = file;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }, [hasData, file]);
 
   return (
-    <main>
-      <div className="card">
-        <h2 className="font-serif text-xl mb-2">{t.title}</h2>
-        {!hasData ? (
-          <div className="badge" style={{ borderColor: '#c55', color: '#c55' }}>
-            {t.fail}
-          </div>
-        ) : (
-          <>
-            <p className="text-sm opacity-70">{t.auto}</p>
-            <a href={`/api/zip?file=${encodeURIComponent(file)}`} download>
-              <button style={{ marginTop: 8 }}>Download</button>
-            </a>
-            <p className="text-sm opacity-70" style={{ marginTop: 8 }}>
-              {t.tip}
-            </p>
-          </>
-        )}
-      </div>
+    <main style={{ padding: '2rem', maxWidth: 960, margin: '0 auto' }}>
+      <h1 style={{ fontSize: '1.4rem', marginBottom: 10 }}>{copy.download.title}</h1>
+
+      {hasData ? (
+        <>
+          <p>{copy.download.auto}</p>
+          <p style={{ marginTop: 6, opacity: 0.8 }}>{copy.download.tip}</p>
+          <a
+            href={`/api/zip?file=${encodeURIComponent(file)}`}
+            download={file}
+            style={{
+              display: 'inline-block',
+              marginTop: 14,
+              border: '1px solid #ccc',
+              padding: '8px 12px',
+              borderRadius: 8,
+            }}
+          >
+            {copy.download.direct}
+          </a>
+        </>
+      ) : (
+        <p
+          style={{
+            border: '1px solid #e99',
+            padding: 12,
+            borderRadius: 8,
+            background: '#fff7f7',
+          }}
+        >
+          {copy.download.fail}
+        </p>
+      )}
+
+      <p style={{ marginTop: 16, opacity: 0.7 }}>
+        © 2025 ByOlisJo. {lang === 'es' ? 'Solo pruebas.' : 'For testing purposes only.'}
+      </p>
     </main>
   );
 }
+
