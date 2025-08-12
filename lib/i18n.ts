@@ -1,124 +1,93 @@
+// lib/i18n.ts
 export type Lang = 'es' | 'en';
 
-export function detectLang(): Lang {
-  if (typeof navigator !== 'undefined') {
-    const n = navigator.language?.toLowerCase() || '';
-    if (n.startsWith('es')) return 'es';
-  }
-  return 'en';
+export function normalizeLang(input?: string | null): Lang {
+  return input === 'en' ? 'en' : 'es';
 }
 
-export const texts: Record<Lang, {
-  title: string;
-  subtitle: string;
-  fields: {
-    name: string;
-    desc: string;
-    client: string;
-  };
-  placeholders: {
-    name: string;
-    desc: string;
-    client: string;
-  };
-  actions: {
-    create: string;
-    preview: string;
-    clear: string;
-    continue: string;
-    lang_es: string;
-    lang_en: string;
-  };
-  slogans: string[];
-  preview: {
-    heading: string;
-    name: string;
-    desc: string;
-    client: string;
-    colors: string;
-  };
-  notices: {
-    required: string;
-    saved: string;
-  };
-}> = {
+export const i18n = {
   es: {
-    title: 'ByOlisJo — Brand Kit Lite',
-    subtitle: 'Tu identidad visual, sin complicaciones.',
-    fields: {
-      name: 'Nombre',
+    title: 'Tu Identidad de Marca en Minutos',
+    labels: {
+      name: 'Nombre del negocio',
       desc: 'Descripción breve',
-      client: '¿Para quién trabajas / cliente ideal?',
-    },
-    placeholders: {
-      name: 'Ej: Olis Acosta',
-      desc: 'Ej: Diseño y consultoría creativa',
-      client: 'Ej: Emprendedores, E-commerce, etc.',
+      client: '¿Para quién trabajas? / cliente ideal',
+      colors: 'Colores (hex, coma separados)',
+      lang: 'Idioma',
+      slogan: 'Elige un eslogan (o escríbelo)',
+      customSlogan: 'Eslogan personalizado (opcional)',
     },
     actions: {
       create: 'Crear mi kit',
-      preview: 'Ver vista previa',
+      preview: 'Vista previa',
       clear: 'Limpiar',
       continue: 'Continuar',
-      lang_es: 'ES',
-      lang_en: 'EN',
-    },
-    slogans: [
-      'Tu marca, lista en minutos.',
-      'Diseña. Descarga. Deslumbra.',
-      'Del concepto al kit, en un clic.',
-      'Crea la imagen que tu negocio merece.',
-    ],
-    preview: {
-      heading: 'Vista previa',
-      name: 'Nombre',
-      desc: 'Descripción',
-      client: 'Cliente/Empresa',
-      colors: 'Colores',
     },
     notices: {
-      required: 'Por favor completa nombre y descripción.',
-      saved: 'Datos guardados.',
+      required: 'Completa al menos nombre y descripción.',
+      saved: 'Guardado.',
+    },
+    suggestions: [
+      'Tu marca, lista en minutos.',
+      'Diseña. Descarga. Deslumbra.',
+      'De concepto a kit en un clic.',
+      'Haz visible la esencia de tu negocio.',
+    ],
+    pay: {
+      title: 'Pago',
+      preparing: (n: string) => `Preparando tu checkout para “${n}”…`,
+    },
+    download: {
+      title: 'Descarga tu archivo',
+      auto: 'Tu ZIP se descargará automáticamente.',
+      fail: 'Faltan datos. Por favor vuelve a generar y pagar.',
+      tip: 'Si no inicia la descarga, revisa bloqueadores de pop-ups o abre el enlace directo.',
+      direct: 'Descargar ahora',
     },
   },
   en: {
-    title: 'ByOlisJo — Brand Kit Lite',
-    subtitle: 'Your brand identity, made simple.',
-    fields: {
-      name: 'Name',
-      desc: 'Brief description',
-      client: 'Who you work for / ideal client',
-    },
-    placeholders: {
-      name: 'e.g., Olis Acosta',
-      desc: 'e.g., Creative design & consulting',
-      client: 'e.g., Entrepreneurs, E-commerce, etc.',
+    title: 'Your Brand Identity in Minutes',
+    labels: {
+      name: 'Business name',
+      desc: 'Short description',
+      client: 'Who do you work for? / ideal client',
+      colors: 'Colors (hex, comma-separated)',
+      lang: 'Language',
+      slogan: 'Pick a tagline (or edit it)',
+      customSlogan: 'Custom tagline (optional)',
     },
     actions: {
       create: 'Create my kit',
-      preview: 'Show preview',
+      preview: 'Preview',
       clear: 'Clear',
       continue: 'Continue',
-      lang_es: 'ES',
-      lang_en: 'EN',
     },
-    slogans: [
+    notices: {
+      required: 'Please fill in at least name and description.',
+      saved: 'Saved.',
+    },
+    suggestions: [
       'Your brand, ready in minutes.',
       'Design. Download. Dazzle.',
       'From concept to kit in one click.',
-      'Create the image your business deserves.',
+      'Make your business essence visible.',
     ],
-    preview: {
-      heading: 'Preview',
-      name: 'Name',
-      desc: 'Description',
-      client: 'Client/Company',
-      colors: 'Colors',
+    pay: {
+      title: 'Payment',
+      preparing: (n: string) => `Preparing checkout for “${n}”…`,
     },
-    notices: {
-      required: 'Please fill in name and description.',
-      saved: 'Saved.',
+    download: {
+      title: 'Download your file',
+      auto: 'Your ZIP will download automatically.',
+      fail: 'Missing data. Please go back, generate and pay.',
+      tip: 'If the download does not start, check pop-up blockers or open the direct link.',
+      direct: 'Download now',
     },
   },
-};
+} as const;
+
+export function t(lang: Lang) {
+  return i18n[lang];
+}
+
 
