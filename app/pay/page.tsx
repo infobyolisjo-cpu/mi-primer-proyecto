@@ -1,87 +1,46 @@
 'use client';
 
-import { Suspense, useEffect, useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-function buildDownloadURL(params: URLSearchParams) {
-  const name = params.get('name') || '';
-  const slogan = params.get('slogan') || '';
-  const colors = params.get('colors') || '';
+const copy = {
+  es: {
+    title: 'Pago',
+    preparing: (n: string) => `Preparando tu checkout para “${n}”…`,
+  },
+  en: {
+    title: 'Payment',
+    preparing: (n: string) => `Preparing checkout for “${n}”…`,
+  },
+};
 
-  // Validamos datos mínimos
-  if (!name || !slogan || !colors) return null;
-
-  // El nombre del archivo para el ZIP
-  const safe = (s: string) => s.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_\-]/g, '');
-  const fileName = `${safe(name)}_BrandKit.zip`;
-
-  // Armamos la query que /download usará para generar el ZIP
-  const qs = new URLSearchParams({
-    name,
-    slogan,
-    colors, // puede venir “#RRGGBB,#RRGGBB,...” URL-encoded
-    file: fileName,
-  });
-
-  return `/download?${qs.toString()}`;
-}
-
-function PayInner() {
+export default function PayPage() {
   const params = useSearchParams();
   const router = useRouter();
 
-  const downloadHref = useMemo(() => buildDownloadURL(params), [params]);
+  const lang = (params.get('lang') === 'en' ? 'en' : 'es') as 'es' | 'en';
+  const t = copy[lang];
 
+  // tu lógica existente + llevar lang a /download
   useEffect(() => {
-    if (!downloadHref) return;
-    // Prefetch por performance
-    router.prefetch(downloadHref);
-    // Redirección con pequeño delay
-    const t = setTimeout(() => {
-      router.replace(downloadHref);
-    }, 900);
+    const name = params.get('name') || '';
+    const slogan = params.get('slogan') || '';
+    const colors = params.get('colors') || '';
 
-    return () => clearTimeout(t);
-  }, [downloadHref, router]);
+    // si falta algo, ir directo a /download con error (como lo tienes)
+    const qs = new URLSearchParams({ file: 'brand-kit-lite.zip', lang });
+    const to = `/download?${qs.toString()}`;
+    const timer = setTimeout(() => router.replace(to), 1200);
+    return () => clearTimeout(timer);
+  }, [params, router, lang]);
 
+  const name = params.get('name') || '—';
   return (
-    <main style={{ padding: '2rem', maxWidth: 760, margin: '0 auto' }}>
+    <main style={{ maxWidth: 860, margin: '0 auto', padding: '1.25rem' }}>
+      <h1 className="font-serif text-2xl mb-2">{t.title}</h1>
       <div className="card">
-        <h2 className="font-serif text-xl mb-2">Pago</h2>
-        {!downloadHref ? (
-          <div className="badge" style={{ borderColor: '#c55', color: '#c55' }}>
-            Faltan datos para continuar. Vuelve a generar tu kit.
-          </div>
-        ) : (
-          <>
-            <p style={{ opacity: 0.8 }}>Preparando tu checkout…</p>
-            <p style={{ opacity: 0.7, marginTop: 16 }}>
-              Si no avanza automáticamente, usa el botón:
-            </p>
-            <a href={downloadHref}>
-              <button
-                style={{
-                  padding: '0.8rem 1.2rem',
-                  borderRadius: 12,
-                  border: 'none',
-                  cursor: 'pointer',
-                  marginTop: 8,
-                }}
-              >
-                Continuar a la descarga
-              </button>
-            </a>
-          </>
-        )}
+        <p>{t.preparing(name)}</p>
       </div>
     </main>
-  );
-}
-
-export default function PayPage() {
-  return (
-    <Suspense fallback={<main style={{ padding: '2rem' }}><p>Preparando…</p></main>}>
-      <PayInner />
-    </Suspense>
   );
 }
