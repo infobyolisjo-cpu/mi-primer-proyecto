@@ -1,70 +1,91 @@
-export const runtime = 'nodejs';
+// app/api/zip/route.ts
+import { NextRequest, NextResponse } from 'next/server';
 import JSZip from 'jszip';
-import { NextResponse } from 'next/server';
 
-// Maneja el flujo actual: /download hace POST con { name, slogan, colors }
-export async function POST(req: Request) {
+export const runtime = 'nodejs';           // JSZip necesita Node, no Edge
+export const dynamic = 'force-dynamic';    // evita intentos de cacheo
+
+type Lang = 'es' | 'en';
+
+function sanitizeFileName(name: string) {
+  return name.replace(/[^\w.-]+/g, '_');
+}
+function escapeHtml(s: string) {
+  return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m] as string));
+}
+
+async function buildZip(input: { name: string; slogan: string; colors: string[]; lang: Lang }) {
+  const { name, slogan, colors, lang } = input;
+  const primary = (colors[0] || '#111111').trim();
+
+  const svg = `
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="400">
+  <rect width="100%" height="100%" fill="#ffffff"/>
+  <text x="50%" y="50%" text-anchor="middle" dominant-baseline="central"
+        font-family="system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif"
+        font-size="72" fill="${primary}">${escapeHtml(name)}</text>
+</svg>`.trim();
+
+  const readme =
+    lang === 'en'
+      ? `Thanks for using ByOlisJo Brand Kit Lite!
+
+Files:
+- colors.txt   -> the palette you entered
+- slogan.txt   -> your slogan
+- logo.svg     -> simple wordmark (first color applied)
+`
+      : `¡Gracias por usar ByOlisJo Brand Kit Lite!
+
+Archivos:
+- colors.txt   -> la paleta de colores ingresada
+- slogan.txt   -> tu eslogan
+- logo.svg     -> wordmark sencillo (usa el primer color)
+`;
+
+  const zip = new JSZip();
+  zip.file('README.txt', readme);
+  zip.file('colors.txt', colors.join('\n'));
+  zip.file('slogan.txt', slogan);
+  zip.file('logo.svg', svg);
+
+  return zip;
+}
+
+function parseCommon(params: URLSearchParams | Record<string, any>) {
+  const get = (k: string) =>
+    params instanceof URLSearchParams ? params.get(k) ?? '' : (params[k] ?? '');
+  const name = (get('name') || 'Brand').toString().trim();
+  const slogan = (get('slogan') || '').toString().trim();
+  const lang: Lang = (get('lang') === 'en' ? 'en' : 'es');
+  const colorsRaw =
+    (get('colors') || get('col') || '').toString();
+  const colors = colorsRaw
+    .split(',')
+    .map((c: string) => c.trim())
+    .filter(Boolean);
+
+  return { name, slogan, colors, lang };
+}
+
+export async function GET(req: NextRequest) {
   try {
-    const body = await req.json().catch(() => ({}));
-    let { name, slogan, colors } = body as {
-      name?: string;
-      slogan?: string;
-      colors?: string[] | string;
-    };
+    const { searchParams } = new URL(req.url);
+    const { name, slogan, colors, lang } = parseCommon(searchParams);
 
-    if (!name || !slogan || !colors) {
+    if (!name || !slogan || colors.length === 0) {
       return NextResponse.json({ error: 'Missing data' }, { status: 400 });
     }
 
-    // Normaliza colores: puede venir como array o como "hex1,hex2,hex3"
-    const colorArr = Array.isArray(colors)
-      ? colors
-      : String(colors).split(',').map(s => s.trim()).filter(Boolean);
+    const fileParam = searchParams.get('file') || `${sanitizeFileName(name)}_BrandKit.zip`;
+    const zip = await buildZip({ name, slogan, colors, lang });
+    const buf = await zip.generateAsync({ type: 'nodebuffer' });
 
-    const primary = colorArr[0] || '#111111';
-
-    // ZIP de ejemplo
-    const zip = new JSZip();
-    zip.file(
-      'README.txt',
-      [
-        'ByOlisJo — Brand Kit Lite',
-        '',
-        `Nombre: ${name}`,
-        `Slogan: ${slogan}`,
-        `Colores: ${colorArr.join(', ')}`,
-        '',
-        'Estructura:',
-        '- /logos/',
-        '- /colores/',
-        '- /tipografia/',
-        '',
-      ].join('\n')
-    );
-
-    // Paleta y slogan
-    zip.folder('colores')?.file('paleta.txt', colorArr.join('\n'));
-    zip.folder('tipografia')?.file('slogan.txt', slogan);
-
-    // Logo SVG simple (sin dependencias externas)
-    const safeText = (t: string) =>
-      t.replace(/[<>&'"]/g, s => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', "'": '&apos;', '"': '&quot;' }[s]!));
-    const svg = `
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="400">
-  <rect width="100%" height="100%" fill="${primary}"/>
-  <text x="50%" y="50%" fill="#FFFFFF" font-family="Arial, Helvetica, sans-serif" font-size="64" text-anchor="middle" dominant-baseline="middle">
-    ${safeText(name)}
-  </text>
-</svg>`;
-    zip.folder('logos')?.file('logo.svg', svg.trim());
-
-    const content = await zip.generateAsync({ type: 'nodebuffer' });
-
-    const fileName = `${name.replace(/\s+/g, '_')}_BrandKit.zip`;
-    return new Response(content, {
+    return new NextResponse(buf, {
+      status: 200,
       headers: {
         'Content-Type': 'application/zip',
-        'Content-Disposition': `attachment; filename="${fileName}"`,
+        'Content-Disposition': `attachment; filename="${sanitizeFileName(fileParam)}"`,
       },
     });
   } catch (e: any) {
@@ -72,21 +93,28 @@ export async function POST(req: Request) {
   }
 }
 
-// (Opcional) Soporte GET para pruebas rápidas: /api/zip?file=brand-kit-lite.zip
-export async function GET(req: Request) {
-  const { searchParams } = new URL(req.url);
-  const file = (searchParams.get('file') || 'brand-kit-lite.zip').replace(/[^a-zA-Z0-9._-]/g, '_');
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json().catch(() => ({}));
+    const { name, slogan, colors, lang } = parseCommon(body);
+    if (!name || !slogan || !colors || colors.length === 0) {
+      return NextResponse.json({ error: 'Missing data' }, { status: 400 });
+    }
+    const filename = (body.file || `${sanitizeFileName(name)}_BrandKit.zip`).toString();
 
-  const zip = new JSZip();
-  zip.file('README.txt', 'ZIP de prueba (GET) — ByOlisJo');
-  zip.folder('logos')?.file('logo.txt', 'Coloca aquí tus logos');
-  const content = await zip.generateAsync({ type: 'nodebuffer' });
+    const zip = await buildZip({ name, slogan, colors, lang });
+    const buf = await zip.generateAsync({ type: 'nodebuffer' });
 
-  return new Response(content, {
-    headers: {
-      'Content-Type': 'application/zip',
-      'Content-Disposition': `attachment; filename="${file}"`,
-    },
-  });
+    return new NextResponse(buf, {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/zip',
+        'Content-Disposition': `attachment; filename="${sanitizeFileName(filename)}"`,
+      },
+    });
+  } catch (e: any) {
+    return NextResponse.json({ error: e?.message || 'Server error' }, { status: 500 });
+  }
 }
+
 
