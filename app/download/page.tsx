@@ -1,86 +1,50 @@
 'use client';
-export const dynamic = 'force-dynamic';
 
-import { Suspense, useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 
-function DownloadInner() {
+const copy = {
+  es: {
+    title: 'Descarga tu archivo',
+    auto: 'Tu ZIP se descargará automáticamente.',
+    fail: 'Faltan datos. Por favor vuelve a generar y pagar.',
+    tip: 'Si no inicia la descarga, revisa bloqueadores de pop-ups o abre el enlace directo.',
+  },
+  en: {
+    title: 'Download your file',
+    auto: 'Your ZIP will download automatically.',
+    fail: 'Missing data. Please go back, generate and pay.',
+    tip: 'If it does not start, check pop-up blockers or open the direct link.',
+  },
+};
+
+export default function DownloadPage() {
   const params = useSearchParams();
-  const ranRef = useRef(false);
-  const [ready, setReady] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const lang = (params.get('lang') === 'en' ? 'en' : 'es') as 'es' | 'en';
+  const t = copy[lang];
 
-  useEffect(() => {
-    if (ranRef.current) return;
-    ranRef.current = true;
-
-    const name = params.get('name') || '';
-    const slogan = params.get('slogan') || '';
-    const colorsParam = params.get('colors') || '';
-    const colors = colorsParam ? colorsParam.split(',') : [];
-
-    if (!name || !slogan || colors.length === 0) {
-      setError('Faltan datos. Por favor vuelve a generar y pagar.');
-      return;
-    }
-
-    (async () => {
-      try {
-        const res = await fetch('/api/zip', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, slogan, colors }),
-        });
-
-        if (!res.ok) {
-          setError('No se pudo crear el ZIP.');
-          return;
-        }
-
-        const blob = await res.blob();
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${name.replace(/\s+/g, '_')}_BrandKit.zip`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        URL.revokeObjectURL(url);
-
-        setReady(true);
-      } catch {
-        setError('Ocurrió un error al descargar.');
-      }
-    })();
-  }, [params]);
+  const file = params.get('file') || 'brand-kit-lite.zip';
+  const hasData = !!file;
 
   return (
     <main>
       <div className="card">
-        <h2 className="font-serif text-xl mb-2">Descarga tu archivo</h2>
-        {error ? (
+        <h2 className="font-serif text-xl mb-2">{t.title}</h2>
+        {!hasData ? (
           <div className="badge" style={{ borderColor: '#c55', color: '#c55' }}>
-            {error}
+            {t.fail}
           </div>
         ) : (
           <>
-            <p>Tu ZIP se descargará automáticamente.</p>
-            {ready && (
-              <p style={{ opacity: 0.7, marginTop: 16 }}>
-                *Si no inicia la descarga, revisa bloqueadores de pop‑ups o abre el enlace directo.
-              </p>
-            )}
+            <p className="text-sm opacity-70">{t.auto}</p>
+            <a href={`/api/zip?file=${encodeURIComponent(file)}`} download>
+              <button style={{ marginTop: 8 }}>Download</button>
+            </a>
+            <p className="text-sm opacity-70" style={{ marginTop: 8 }}>
+              {t.tip}
+            </p>
           </>
         )}
       </div>
     </main>
-  );
-}
-
-export default function DownloadPage() {
-  return (
-    <Suspense fallback={<main><p>Preparando tu descarga…</p></main>}>
-      <DownloadInner />
-    </Suspense>
   );
 }
