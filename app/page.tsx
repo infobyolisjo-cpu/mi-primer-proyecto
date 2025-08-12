@@ -136,6 +136,9 @@ export default function HomePage() {
       </div>
 
       <h1 className="font-serif" style={{ fontSize: 28, marginBottom: 16 }}>{t.title}</h1>
+<p id="debug-flag" style={{background:'#FFEB3B',color:'#000',padding:'6px 10px',border:'1px solid #E0C200',borderRadius:6}}>
+  DEBUG: Home v1 (si ves esto, la edición y el despliegue están bien)
+</p>
 
       {/* 2 columnas: formulario izquierda / preview derecha */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 20 }}>
