@@ -2,42 +2,77 @@
 
 import { useEffect, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { normalizeLang, t } from '@/lib/i18n';
+
+type Lang = 'es' | 'en';
+
+const copy = {
+  es: {
+    title: 'Pago',
+    preparing: (n: string) => `Preparando tu checkout para “${n}”…`,
+    missing: 'Faltan datos. Te llevamos a la descarga para volver a generar.',
+  },
+  en: {
+    title: 'Payment',
+    preparing: (n: string) => `Preparing checkout for “${n}”…`,
+    missing: 'Missing data. We’ll take you to download to re-generate.',
+  },
+} as const;
 
 export default function PayPage() {
-  const router = useRouter();
   const params = useSearchParams();
+  const router = useRouter();
 
-  const lang = normalizeLang(params.get('lang'));
-  const copy = useMemo(() => t(lang), [lang]);
+  // idioma
+  const lang = (params.get('lang') === 'en' ? 'en' : 'es') as Lang;
+  const t = copy[lang];
 
-  const name = params.get('name') || '';
-  const slogan = params.get('slogan') || '';
-  const colors = params.get('colors') || '';
+  // datos que vienen de / (home)
+  const name = (params.get('name') || '').trim();
+  const slogan = (params.get('slogan') || '').trim();
+  const colors = (params.get('colors') || '').trim();
 
-  // Redirección a /download con ?file=...&lang=...
+  // destino /download (siempre incluimos lang)
+  const downloadQS = useMemo(() => {
+    const qs = new URLSearchParams({
+      file: 'brand-kit-lite.zip',
+      lang,
+    });
+    // si faltan datos, avisamos para mostrar mensaje en /download
+    if (!name || !slogan || !colors) qs.set('error', 'missing');
+    return qs.toString();
+  }, [lang, name, slogan, colors]);
+
   useEffect(() => {
-    const hasData = name.trim() && colors.trim();
+    // Pequeña pausa para que el usuario vea el mensaje y luego vamos a /download
     const timer = setTimeout(() => {
-      const qs = new URLSearchParams();
-      qs.set('lang', lang);
-      if (hasData) {
-        // aquí podrías generar un nombre de archivo dinámico si quieres
-        qs.set('file', 'brand-kit-lite.zip');
-      }
-      router.replace(`/download?${qs.toString()}`);
-    }, 1200);
+      router.replace(`/download?${downloadQS}`);
+    }, 1100);
     return () => clearTimeout(timer);
-  }, [router, lang, name, colors]);
+  }, [router, downloadQS]);
+
+  const hasData = !!(name && slogan && colors);
+
+  // Estilos mínimos para mantener tu estética
+  const card: React.CSSProperties = {
+    border: '1px solid #d9cdb4',
+    background: '#fbf7ee',
+    borderRadius: 8,
+    padding: '1.25rem',
+  };
 
   return (
-    <main style={{ padding: '2rem', maxWidth: 960, margin: '0 auto' }}>
-      <h1 style={{ fontSize: '1.4rem', marginBottom: 10 }}>{copy.pay.title}</h1>
-      <p>{copy.pay.preparing(name || '…')}</p>
-      <p style={{ marginTop: 16, opacity: 0.7 }}>
-        © 2025 ByOlisJo. {lang === 'es' ? 'Solo pruebas.' : 'For testing purposes only.'}
-      </p>
-    </main>
+    <div style={{ maxWidth: 960, margin: '0 auto', padding: '1.25rem' }}>
+      <h1 style={{ fontFamily: 'serif', fontSize: 28, margin: '0 0 12px' }}>
+        {t.title}
+      </h1>
+
+      <div style={card}>
+        <p style={{ margin: 0, color: '#5a4d3b' }}>
+          {hasData ? t.preparing(name) : t.missing}
+        </p>
+      </div>
+    </div>
   );
 }
+
 
