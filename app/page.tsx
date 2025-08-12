@@ -1,237 +1,320 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { normalizeLang, t, type Lang } from '@/lib/i18n';
+import { useRouter } from 'next/navigation';
 
-type FormState = {
-  name: string;
-  desc: string;
-  client: string;
-  colors: string; // CSV: "#C5B13B,#3BB044,#43C4A3"
-  lang: Lang;
-  slogan: string;       // opción elegida
-  customSlogan: string; // si escribe uno propio
-};
+type Lang = 'es' | 'en';
+
+const t = {
+  es: {
+    brand: 'ByOlisJoBrand Kit Lite',
+    premium: 'Premium & minimal — beige & gold aesthetic',
+    lang: 'Idioma',
+    // Sección: datos
+    title: 'Tu Identidad de Marca en Minutos',
+    name: 'Nombre del negocio',
+    desc: 'Descripción breve',
+    client: '¿Para quién trabajas? / cliente ideal',
+    helpTop: 'Completa tus datos y recibe tu kit listo para usar.',
+    // Sección: eslóganes
+    pickSlogan: 'Elige un eslogan (o edítalo)',
+    customSlogan: 'Eslogan personalizado (opcional)',
+    needData: 'Completa los campos para ver y seleccionar eslóganes.',
+    suggestionsTitle: 'Ideas de eslogan',
+    suggestions: [
+      'Tu marca, lista en minutos.',
+      'Diseña. Descarga. Deslumbra.',
+      'Crea el kit de tu marca en un clic.',
+      'Haz visible la esencia de tu negocio.',
+    ],
+    // Botón
+    cta: 'Crear y descargar kit',
+    // Vista previa (derecha)
+    previewTitle: 'Vista previa',
+  },
+  en: {
+    brand: 'ByOlisJoBrand Kit Lite',
+    premium: 'Premium & minimal — beige & gold aesthetic',
+    lang: 'Language',
+    // Section: data
+    title: 'Your Brand Identity in Minutes',
+    name: 'Business name',
+    desc: 'Short description',
+    client: 'Who do you work for? / ideal client',
+    helpTop: 'Fill in your details to get your ready-to-use kit.',
+    // Section: slogans
+    pickSlogan: 'Choose a slogan (or edit)',
+    customSlogan: 'Custom slogan (optional)',
+    needData: 'Fill the fields to view and choose slogans.',
+    suggestionsTitle: 'Slogan ideas',
+    suggestions: [
+      'Your brand, ready in minutes.',
+      'Design. Download. Dazzle.',
+      'Your brand kit in one click.',
+      'Make your essence visible.',
+    ],
+    // Button
+    cta: 'Create & download kit',
+    // Preview
+    previewTitle: 'Preview',
+  },
+} as const;
 
 export default function HomePage() {
   const router = useRouter();
-  const params = useSearchParams();
 
-  const initialLang = normalizeLang(params.get('lang'));
-  const [form, setForm] = useState<FormState>({
-    name: '',
-    desc: '',
-    client: '',
-    colors: '#C5B13B,#3BB044,#43C4A3',
-    lang: initialLang,
-    slogan: '',
-    customSlogan: '',
-  });
+  // idioma (se sincroniza con ?lang si llega)
+  const [lang, setLang] = useState<Lang>('es');
 
-  // Traducciones según idioma
-  const copy = useMemo(() => t(form.lang), [form.lang]);
+  // datos del formulario
+  const [name, setName] = useState('');
+  const [desc, setDesc] = useState('');
+  const [client, setClient] = useState('');
 
-  // Cuando cambia el lang del query, sincroniza
+  // eslóganes
+  const suggestions = t[lang].suggestions;
+  const [picked, setPicked] = useState<number>(0); // índice de suggestions
+  const [custom, setCustom] = useState('');
+
+  // colores por defecto (si luego los haces configurables, pásalos aquí)
+  const colors = ['#C5B28F', '#8C7A5B', '#E7DCC7'];
+
+  // lee ?lang si llega
   useEffect(() => {
-    const qLang = normalizeLang(params.get('lang'));
-    if (qLang !== form.lang) {
-      setForm((f) => ({ ...f, lang: qLang }));
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [params]);
+    try {
+      const u = new URL(window.location.href);
+      const ql = u.searchParams.get('lang');
+      if (ql === 'en' || ql === 'es') setLang(ql);
+    } catch {}
+  }, []);
 
-  // slogan final preferirá el custom si existe, sino el elegido
-  const finalSlogan = form.customSlogan.trim() || form.slogan.trim();
+  // “listo” cuando los 3 campos base están completos
+  const isReady = useMemo(
+    () => name.trim() && desc.trim() && client.trim(),
+    [name, desc, client]
+  );
 
-  const handleChange =
-    (field: keyof FormState) =>
-    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      setForm((f) => ({ ...f, [field]: e.target.value }));
-    };
+  // eslogan final = custom (si hay), sino el elegido por radio
+  const finalSlogan = useMemo(() => {
+    if (custom.trim()) return custom.trim();
+    return suggestions[picked] ?? suggestions[0];
+  }, [custom, picked, suggestions]);
 
-  const handleLang = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const nextLang = normalizeLang(e.target.value);
-    setForm((f) => ({ ...f, lang: nextLang }));
-    // actualiza la URL con ?lang=
-    const qs = new URLSearchParams(Array.from(params.entries()));
-    qs.set('lang', nextLang);
-    router.replace(`/?${qs.toString()}`);
+  // submit → vamos a /pay con los params
+  const onSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isReady) return;
+
+    const params = new URLSearchParams({
+      name: name.trim(),
+      slogan: finalSlogan,
+      colors: colors.join(','), // ej: #C5B28F,#8C7A5B,#E7DCC7
+      lang,
+    });
+
+    router.push(`/pay?${params.toString()}`);
   };
 
-  const handleSuggestion = (s: string) => {
-    setForm((f) => ({ ...f, slogan: s, customSlogan: '' }));
+  // pequeños estilos para mantener tu estética sin tocar CSS global
+  const card: React.CSSProperties = {
+    border: '1px solid #d9cdb4',
+    background: '#fbf7ee',
+    borderRadius: 8,
+    padding: '1.25rem',
   };
-
-  const handleSubmit = () => {
-    if (!form.name.trim() || !form.desc.trim()) {
-      alert(copy.notices.required);
-      return;
-    }
-    const qs = new URLSearchParams();
-    qs.set('name', form.name);
-    qs.set('slogan', finalSlogan || '');
-    qs.set('colors', form.colors);
-    qs.set('lang', form.lang);
-    router.push(`/pay?${qs.toString()}`);
+  const label: React.CSSProperties = {
+    fontSize: '0.9rem',
+    marginBottom: 6,
+    display: 'block',
+    color: '#6b5b45',
+  };
+  const input: React.CSSProperties = {
+    width: '100%',
+    padding: '10px 12px',
+    border: '1px solid #d9cdb4',
+    borderRadius: 6,
+    background: '#fffdf8',
+  };
+  const hint: React.CSSProperties = {
+    fontSize: '0.85rem',
+    color: '#6b5b45',
+    opacity: 0.8,
+  };
+  const h2: React.CSSProperties = {
+    fontFamily: 'serif',
+    fontWeight: 600,
+    fontSize: '1.6rem',
+    margin: '0 0 12px',
+    color: '#3f3427',
+  };
+  const rightNote: React.CSSProperties = {
+    borderLeft: '1px dashed #d9cdb4',
+    paddingLeft: '1rem',
+    color: '#5a4d3b',
   };
 
   return (
-    <main style={{ padding: '2rem', maxWidth: 960, margin: '0 auto' }}>
-      <h1 style={{ fontSize: '1.8rem', marginBottom: '1rem' }}>{copy.title}</h1>
+    <div style={{ maxWidth: 1080, margin: '0 auto', padding: '1.25rem' }}>
+      {/* encabezado */}
+      <div style={{ marginBottom: 16 }}>
+        <div style={{ fontSize: 22, fontWeight: 700 }}>{t[lang].brand}</div>
+        <div style={{ fontSize: 14, color: '#6b5b45' }}>{t[lang].premium}</div>
+      </div>
 
-      {/* Idioma */}
-      <div style={{ marginBottom: 12 }}>
-        <label style={{ display: 'block', fontWeight: 600, marginBottom: 6 }}>
-          {copy.labels.lang}
-        </label>
-        <select value={form.lang} onChange={handleLang}>
-          <option value="es">Español</option>
-          <option value="en">English</option>
+      {/* selector idioma */}
+      <div style={{ marginBottom: 16 }}>
+        <label style={{ ...label, marginBottom: 4 }}>{t[lang].lang}:</label>
+        <select
+          value={lang}
+          onChange={(e) => setLang((e.target.value as Lang) ?? 'es')}
+          style={{ ...input, width: 140 }}
+        >
+          <option value="es">ES</option>
+          <option value="en">EN</option>
         </select>
       </div>
 
-      {/* Nombre */}
-      <div style={{ marginBottom: 12 }}>
-        <label style={{ display: 'block', fontWeight: 600, marginBottom: 6 }}>
-          {copy.labels.name}
-        </label>
-        <input
-          value={form.name}
-          onChange={handleChange('name')}
-          placeholder="ByOlisJo"
-          style={{ width: '100%' }}
-        />
-      </div>
+      {/* título + ayuda */}
+      <h1 style={{ fontFamily: 'serif', fontSize: 28, margin: '16px 0' }}>
+        {t[lang].title}
+      </h1>
+      <p style={{ ...hint, margin: '0 0 16px' }}>{t[lang].helpTop}</p>
 
-      {/* Descripción */}
-      <div style={{ marginBottom: 12 }}>
-        <label style={{ display: 'block', fontWeight: 600, marginBottom: 6 }}>
-          {copy.labels.desc}
-        </label>
-        <input
-          value={form.desc}
-          onChange={handleChange('desc')}
-          placeholder={
-            form.lang === 'es'
-              ? 'Joyería artesanal con piedras inspiradas en la luna'
-              : 'Handcrafted jewelry with moon-inspired stones'
-          }
-          style={{ width: '100%' }}
-        />
-      </div>
+      {/* layout 2 columnas */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 340px',
+          gap: '1rem',
+        }}
+      >
+        {/* izquierda: formulario */}
+        <form onSubmit={onSubmit}>
+          <div style={{ ...card, marginBottom: 12 }}>
+            <div style={{ marginBottom: 12 }}>
+              <label style={label}>{t[lang].name}</label>
+              <input
+                style={input}
+                placeholder={lang === 'es' ? 'Ej. ByOlisJo' : 'e.g. ByOlisJo'}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
+            </div>
 
-      {/* Cliente */}
-      <div style={{ marginBottom: 12 }}>
-        <label style={{ display: 'block', fontWeight: 600, marginBottom: 6 }}>
-          {copy.labels.client}
-        </label>
-        <input
-          value={form.client}
-          onChange={handleChange('client')}
-          placeholder={
-            form.lang === 'es'
-              ? 'Mujeres 25-45 que valoran el diseño artesanal'
-              : 'Women 25-45 who value artisanal design'
-          }
-          style={{ width: '100%' }}
-        />
-      </div>
+            <div style={{ marginBottom: 12 }}>
+              <label style={label}>{t[lang].desc}</label>
+              <input
+                style={input}
+                placeholder={
+                  lang === 'es'
+                    ? 'Ej. Joyería artesanal con piedras lunares'
+                    : 'e.g. Handmade jewelry with moon-inspired stones'
+                }
+                value={desc}
+                onChange={(e) => setDesc(e.target.value)}
+              />
+            </div>
 
-      {/* Colores */}
-      <div style={{ marginBottom: 12 }}>
-        <label style={{ display: 'block', fontWeight: 600, marginBottom: 6 }}>
-          {copy.labels.colors}
-        </label>
-        <input
-          value={form.colors}
-          onChange={handleChange('colors')}
-          placeholder="#C5B13B,#3BB044,#43C4A3"
-          style={{ width: '100%' }}
-        />
-        <small>
-          {form.lang === 'es'
-            ? 'Ejemplo: #C5B13B,#3BB044,#43C4A3'
-            : 'Example: #C5B13B,#3BB044,#43C4A3'}
-        </small>
-      </div>
+            <div>
+              <label style={label}>{t[lang].client}</label>
+              <input
+                style={input}
+                placeholder={
+                  lang === 'es'
+                    ? 'Ej. Mujeres 25–45 que valoran el diseño artesanal'
+                    : 'e.g. Women 25–45 who value artisanal design'
+                }
+                value={client}
+                onChange={(e) => setClient(e.target.value)}
+              />
+            </div>
+          </div>
 
-      {/* Slogan sugerido + personalizado */}
-      <div style={{ marginBottom: 16 }}>
-        <label style={{ display: 'block', fontWeight: 600, marginBottom: 6 }}>
-          {copy.labels.slogan}
-        </label>
+          <div style={{ ...card, marginBottom: 12 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <h2 style={h2}>{t[lang].pickSlogan}</h2>
+              {!isReady && (
+                <div style={{ ...hint, textAlign: 'right' }}>{t[lang].needData}</div>
+              )}
+            </div>
 
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
-          {copy.suggestions.slice(0, 4).map((s) => (
-            <button
-              key={s}
-              type="button"
-              onClick={() => handleSuggestion(s)}
-              style={{
-                border: '1px solid #ddd',
-                padding: '6px 10px',
-                background: form.slogan === s ? '#f2f2f2' : 'white',
-                cursor: 'pointer',
-              }}
-            >
-              {s}
-            </button>
-          ))}
+            {/* radios de eslóganes: ocultos si no está listo */}
+            {isReady && (
+              <div style={{ display: 'grid', gap: 10, marginBottom: 10 }}>
+                {suggestions.map((s, i) => (
+                  <label
+                    key={i}
+                    style={{
+                      display: 'flex',
+                      gap: 8,
+                      alignItems: 'center',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <input
+                      type="radio"
+                      name="slogan"
+                      checked={!custom && picked === i}
+                      onChange={() => {
+                        setCustom('');
+                        setPicked(i);
+                      }}
+                    />
+                    <span>{s}</span>
+                  </label>
+                ))}
+              </div>
+            )}
+
+            <div>
+              <label style={label}>{t[lang].customSlogan}</label>
+              <input
+                style={input}
+                placeholder={
+                  lang === 'es'
+                    ? 'Escribe tu propio eslogan (opcional)'
+                    : 'Write your own slogan (optional)'
+                }
+                value={custom}
+                onChange={(e) => setCustom(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            disabled={!isReady}
+            style={{
+              width: '100%',
+              padding: '12px 14px',
+              borderRadius: 8,
+              border: '1px solid #bfae8e',
+              background: isReady ? '#e8dcc7' : '#eee7d9',
+              cursor: isReady ? 'pointer' : 'not-allowed',
+              fontWeight: 600,
+            }}
+          >
+            {t[lang].cta}
+          </button>
+        </form>
+
+        {/* derecha: vista previa */}
+        <div style={{ ...card }}>
+          <h2 style={h2}>{t[lang].previewTitle}</h2>
+          <div style={rightNote}>
+            <div style={{ marginBottom: 8, fontWeight: 600 }}>{name || '—'}</div>
+            <div style={{ marginBottom: 6 }}>{desc || '—'}</div>
+            <div style={{ marginBottom: 6, fontSize: 13, opacity: 0.85 }}>
+              {client || '—'}
+            </div>
+            <hr style={{ border: 0, borderTop: '1px dashed #d9cdb4', margin: '10px 0' }} />
+            <div style={{ fontStyle: 'italic' }}>
+              {custom.trim() ? custom.trim() : suggestions[picked]}
+            </div>
+          </div>
         </div>
-
-        <input
-          value={form.customSlogan}
-          onChange={handleChange('customSlogan')}
-          placeholder={copy.labels.customSlogan}
-          style={{ width: '100%' }}
-        />
       </div>
-
-      {/* Botón crear */}
-      <div style={{ display: 'flex', gap: 8 }}>
-        <button
-          type="button"
-          onClick={handleSubmit}
-          style={{
-            padding: '10px 14px',
-            borderRadius: 8,
-            border: '1px solid #ccc',
-            cursor: 'pointer',
-          }}
-        >
-          {copy.actions.create}
-        </button>
-
-        <button
-          type="button"
-          onClick={() =>
-            setForm({
-              name: '',
-              desc: '',
-              client: '',
-              colors: '#C5B13B,#3BB044,#43C4A3',
-              lang: form.lang,
-              slogan: '',
-              customSlogan: '',
-            })
-          }
-          style={{
-            padding: '10px 14px',
-            borderRadius: 8,
-            border: '1px solid #ccc',
-            cursor: 'pointer',
-            background: '#fafafa',
-          }}
-        >
-          {copy.actions.clear}
-        </button>
-      </div>
-
-      <p style={{ marginTop: 16, opacity: 0.7 }}>
-        © 2025 ByOlisJo. {form.lang === 'es' ? 'Solo pruebas.' : 'For testing purposes only.'}
-      </p>
-    </main>
+    </div>
   );
 }
 
