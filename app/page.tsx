@@ -60,13 +60,13 @@ export default function HomePage() {
   const t = texts[lang];
 
   // datos del formulario
-  const [name, setName]   = useState('');
-  const [desc, setDesc]   = useState('');
+  const [name, setName] = useState('');
+  const [desc, setDesc] = useState('');
   const [client, setClient] = useState('');
 
   // eslóganes
   const suggestions = t.suggestions;
-  const [picked, setPicked] = useState<number | null>(0); // por defecto el primero
+  const [picked, setPicked] = useState<number | null>(null); // ← ninguno seleccionado al iniciar
   const [custom, setCustom] = useState('');
 
   // colores por defecto (si luego los haces configurables, pásalos aquí)
@@ -77,8 +77,12 @@ export default function HomePage() {
     return name.trim() !== '' && desc.trim() !== '' && client.trim() !== '';
   }, [name, desc, client]);
 
-  const chosenSlogan = (custom.trim() !== '' ? custom.trim()
-                    : picked !== null ? suggestions[picked] : '');
+  const chosenSlogan =
+    custom.trim() !== ''
+      ? custom.trim()
+      : picked !== null
+      ? suggestions[picked]
+      : '';
 
   const canSubmit = canPickSlogan && chosenSlogan !== '';
 
@@ -216,4 +220,5 @@ export default function HomePage() {
     </main>
   );
 }
+
 
