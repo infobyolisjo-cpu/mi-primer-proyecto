@@ -75,6 +75,15 @@ export default function HomePage() {
   const suggestions = t[lang].suggestions;
   const [picked, setPicked] = useState<number>(0); // índice de suggestions
   const [custom, setCustom] = useState('');
+// === NUEVO: reglas de activación ===
+const canPickSlogan =
+  name.trim().length > 0 &&
+  desc.trim().length > 0 &&
+  client.trim().length > 0;
+
+const hasSlogan = (picked !== null) || custom.trim().length > 0;
+
+const canSubmit = canPickSlogan && hasSlogan;
 
   // colores por defecto (si luego los haces configurables, pásalos aquí)
   const colors = ['#C5B28F', '#8C7A5B', '#E7DCC7'];
