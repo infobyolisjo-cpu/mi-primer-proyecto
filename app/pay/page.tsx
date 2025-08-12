@@ -1,25 +1,29 @@
-'use client'
+'use client';
+export const dynamic = 'force-dynamic';
 
-import { useSearchParams } from 'next/navigation'
-import { useEffect } from 'react'
+import { Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
+
+function PayInner() {
+  const params = useSearchParams();
+  const name = params.get('name') || '';
+  return (
+    <main>
+      <div className="card">
+        <h2 className="font-serif text-xl mb-2">Pago</h2>
+        <p style={{ opacity: 0.8 }}>
+          Preparando tu checkout {name ? `para “${name}”` : ''}…
+        </p>
+      </div>
+    </main>
+  );
+}
 
 export default function PayPage() {
-  const searchParams = useSearchParams()
-
-  useEffect(() => {
-    const name = searchParams.get('name')
-    const slogan = searchParams.get('slogan')
-    const colors = searchParams.get('colors')
-
-    console.log('Nombre:', name)
-    console.log('Slogan:', slogan)
-    console.log('Colores:', colors)
-  }, [searchParams])
-
   return (
-    <div style={{ padding: '2rem' }}>
-      <h1 style={{ fontSize: '2rem', marginBottom: '1rem' }}>Procesando pago...</h1>
-      <p>Estamos creando tu Kit de Marca personalizado. Si estás en modo test, verás la redirección automática.</p>
-    </div>
-  )
+    <Suspense fallback={<main><p>Cargando pago…</p></main>}>
+      <PayInner />
+    </Suspense>
+  );
 }
+
