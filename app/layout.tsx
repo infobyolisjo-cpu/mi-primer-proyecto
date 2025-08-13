@@ -1,8 +1,20 @@
 // app/layout.tsx
+import { Playfair_Display, Inter } from 'next/font/google';
+
 export const metadata = {
   title: 'ByOlisJo Brand Kit Lite',
   description: 'Premium & minimal — beige & gold aesthetic',
 };
+
+const playfair = Playfair_Display({
+  subsets: ['latin'],
+  weight: ['600', '700'],
+  variable: '--font-serif',
+});
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-sans',
+});
 
 const colors = {
   bg: '#efe6d8',         // beige base
@@ -37,11 +49,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="es">
       <body
+        className={`${inter.variable} ${playfair.variable}`}
         style={{
           background: colors.bg,
           color: colors.text,
-          fontFamily:
-            'ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, Apple Color Emoji, Segoe UI Emoji',
+          fontFamily: 'var(--font-sans)',
           margin: 0,
         }}
       >
@@ -76,10 +88,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 textDecoration: 'none',
                 color: colors.text,
                 letterSpacing: '.2px',
+                fontFamily: 'var(--font-serif)',
               }}
               aria-label="Ir al inicio"
             >
-              ByOlisJo<span style={{ fontWeight: 500, opacity: 0.85 }}>Brand Kit Lite</span>
+              ByOlisJo<span style={{ fontWeight: 500, opacity: 0.85 }}> Brand Kit Lite</span>
             </a>
 
             {/* Nav */}
@@ -87,24 +100,36 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <a
                 href="/"
                 style={btn.base}
-                onMouseOver={(e) => Object.assign((e.currentTarget as HTMLAnchorElement).style, btn.hover)}
-                onMouseOut={(e) => Object.assign((e.currentTarget as HTMLAnchorElement).style, btn.base)}
+                onMouseOver={(e) =>
+                  Object.assign((e.currentTarget as HTMLAnchorElement).style, btn.hover)
+                }
+                onMouseOut={(e) =>
+                  Object.assign((e.currentTarget as HTMLAnchorElement).style, btn.base)
+                }
               >
                 Inicio
               </a>
               <a
                 href="/productos"
                 style={btn.base}
-                onMouseOver={(e) => Object.assign((e.currentTarget as HTMLAnchorElement).style, btn.hover)}
-                onMouseOut={(e) => Object.assign((e.currentTarget as HTMLAnchorElement).style, btn.base)}
+                onMouseOver={(e) =>
+                  Object.assign((e.currentTarget as HTMLAnchorElement).style, btn.hover)
+                }
+                onMouseOut={(e) =>
+                  Object.assign((e.currentTarget as HTMLAnchorElement).style, btn.base)
+                }
               >
                 Productos
               </a>
               <a
                 href="/download"
                 style={btn.base}
-                onMouseOver={(e) => Object.assign((e.currentTarget as HTMLAnchorElement).style, btn.hover)}
-                onMouseOut={(e) => Object.assign((e.currentTarget as HTMLAnchorElement).style, btn.base)}
+                onMouseOver={(e) =>
+                  Object.assign((e.currentTarget as HTMLAnchorElement).style, btn.hover)
+                }
+                onMouseOut={(e) =>
+                  Object.assign((e.currentTarget as HTMLAnchorElement).style, btn.base)
+                }
               >
                 Descargas
               </a>
@@ -143,4 +168,5 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     </html>
   );
 }
+
 
