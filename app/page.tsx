@@ -38,6 +38,23 @@ export default function Home({
       <footer style={{ marginTop: 40, opacity: 0.8 }}>
         © 2025 ByOlisJo. For testing purposes only.
       </footer>
+      {/* Botón para ir a /productos */}
+      <nav style={{ marginTop: 24 }}>
+        <a
+          href="/productos"
+          style={{
+            display: 'inline-block',
+            padding: '10px 16px',
+            backgroundColor: '#f0f0f0',
+            borderRadius: 8,
+            textDecoration: 'none',
+            border: '1px solid #333'
+          }}
+        >
+          Ver productos
+        </a>
+      </nav>
+
     </main>
   );
 }
