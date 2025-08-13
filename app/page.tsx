@@ -38,8 +38,9 @@ export default function Home({
       <footer style={{ marginTop: 40, opacity: 0.8 }}>
         © 2025 ByOlisJo. For testing purposes only.
       </footer>
-      {/* Botón para ir a /productos */}
-      <nav style={{ marginTop: 24 }}>
+
+      {/* Botones para navegar */}
+      <nav style={{ marginTop: 24, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
         <a
           href="/productos"
           style={{
@@ -53,8 +54,22 @@ export default function Home({
         >
           Ver productos
         </a>
-      </nav>
 
+        <a
+          href="/download"
+          style={{
+            display: 'inline-block',
+            padding: '10px 16px',
+            backgroundColor: '#f0f0f0',
+            borderRadius: 8,
+            textDecoration: 'none',
+            border: '1px solid #333'
+          }}
+        >
+          Ir a descargas
+        </a>
+      </nav>
     </main>
   );
 }
+
