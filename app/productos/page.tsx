@@ -16,55 +16,14 @@ export default function Productos() {
     panelBorder: '#e0d2bd',
     text: '#201810',
     btnBorder: '#b89e7a',
-    btnHoverBorder: '#8e7759',
-    btnHoverBg: '#fffaf2',
     cardShadow: '0 6px 18px rgba(0,0,0,0.06)',
   } as const;
 
   const items: Item[] = [
-    {
-      id: 'kit-canva',
-      title: 'Kit Canva: Branding Express',
-      desc: 'Plantillas premium + guía rápida para identidad visual.',
-      price: 'USD 17',
-      ctaHref: '#',
-      ctaText: 'Ver detalles',
-    },
-    {
-      id: 'prompts-ia',
-      title: '25 Prompts IA para Emprendedoras',
-      desc: 'Copy, ideas de reels y respuestas de WhatsApp listas.',
-      price: 'USD 9',
-      ctaHref: '#',
-      ctaText: 'Ver detalles',
-    },
-    {
-      id: 'mini-curso',
-      title: 'Mini-curso: IA en tu Marca',
-      desc: 'Workflow simple con herramientas gratuitas.',
-      price: 'USD 29',
-      ctaHref: '#',
-      ctaText: 'Ver detalles',
-    },
+    { id: 'kit-canva', title: 'Kit Canva: Branding Express', desc: 'Plantillas premium + guía rápida para identidad visual.', price: 'USD 17', ctaHref: '#', ctaText: 'Ver detalles' },
+    { id: 'prompts-ia', title: '25 Prompts IA para Emprendedoras', desc: 'Copy, ideas de reels y respuestas de WhatsApp listas.', price: 'USD 9', ctaHref: '#', ctaText: 'Ver detalles' },
+    { id: 'mini-curso', title: 'Mini-curso: IA en tu Marca', desc: 'Workflow simple con herramientas gratuitas.', price: 'USD 29', ctaHref: '#', ctaText: 'Ver detalles' },
   ];
-
-  const onBtnOver = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    Object.assign(e.currentTarget.style, {
-      background: ui.btnHoverBg,
-      borderColor: ui.btnHoverBorder,
-      transform: 'translateY(-1px)',
-      boxShadow: ui.cardShadow,
-      cursor: 'pointer',
-    });
-  };
-  const onBtnOut = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    Object.assign(e.currentTarget.style, {
-      background: '#fff',
-      borderColor: ui.btnBorder,
-      transform: 'none',
-      boxShadow: '0 1px 0 rgba(0,0,0,0.03)',
-    });
-  };
 
   return (
     <main style={{ padding: 24, maxWidth: 1100, margin: '0 auto', lineHeight: 1.6 }}>
@@ -75,7 +34,6 @@ export default function Productos() {
         Recursos digitales ByOlisJo (demo). Estilo premium, minimal — beige & gold.
       </p>
 
-      {/* Grid */}
       <section
         style={{
           marginTop: 20,
@@ -115,10 +73,7 @@ export default function Productos() {
                   textDecoration: 'none',
                   fontWeight: 600,
                   boxShadow: '0 1px 0 rgba(0,0,0,0.03)',
-                  transition: 'all .15s ease',
                 }}
-                onMouseOver={onBtnOver}
-                onMouseOut={onBtnOut}
               >
                 {it.ctaText}
               </a>
