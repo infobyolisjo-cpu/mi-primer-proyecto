@@ -13,7 +13,7 @@ export default function Download({
 
   return (
     <main style={{ padding: 24, maxWidth: 720, margin: '0 auto', lineHeight: 1.5 }}>
-      <h1>Descargas</h1>
+      <h1 style={{ fontFamily: 'var(--font-serif)', letterSpacing: '.2px' }}>Descargas</h1>
 
       {token ? (
         <p>Token recibido: <code>{token}</code></p>
@@ -39,4 +39,5 @@ export default function Download({
     </main>
   );
 }
+
 
