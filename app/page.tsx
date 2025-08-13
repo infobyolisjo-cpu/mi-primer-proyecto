@@ -13,12 +13,12 @@ export default function Home({
 
   return (
     <main style={{ padding: 24, maxWidth: 720, margin: '0 auto', lineHeight: 1.5 }}>
-      <h1>Inicio</h1>
+      <h1 style={{ fontFamily: 'var(--font-serif)', letterSpacing: '.2px' }}>Inicio</h1>
       <p>Bienvenida a ByOlisJo</p>
 
       {/* Formulario que actualiza ?q=... sin hooks de cliente */}
       <section style={{ marginTop: 24, padding: 16, border: '1px solid #ddd', borderRadius: 12 }}>
-        <h2>Búsqueda rápida</h2>
+        <h2 style={{ marginTop: 0 }}>Búsqueda rápida</h2>
         <form method="GET" style={{ display: 'flex', gap: 12 }}>
           <input
             name="q"
@@ -36,42 +36,10 @@ export default function Home({
       </section>
 
       <footer style={{ marginTop: 40, opacity: 0.8 }}>
-        © 2025 ByOlisJo. For testing purposes only.
+        © {new Date().getFullYear()} ByOlisJo. For testing purposes only.
       </footer>
-
-      
-      {/* Botones para navegar */}
-<nav style={{ marginTop: 24, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-  <a
-    href="/productos"
-    style={{
-      display: 'inline-block',
-      padding: '10px 16px',
-      backgroundColor: '#f0f0f0',
-      borderRadius: 8,
-      textDecoration: 'none',
-      border: '1px solid #333'
-    }}
-  >
-    Ver productos
-  </a>
-
-  <a
-    href="/download"
-    style={{
-      display: 'inline-block',
-      padding: '10px 16px',
-      backgroundColor: '#f0f0f0',
-      borderRadius: 8,
-      textDecoration: 'none',
-      border: '1px solid #333'
-    }}
-  >
-    Ir a descargas
-  </a>
-</nav>
-
     </main>
   );
 }
+
 
