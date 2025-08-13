@@ -4,7 +4,7 @@ export const dynamic = 'force-dynamic';
 export default function Productos() {
   return (
     <main style={{ padding: 24, maxWidth: 720, margin: '0 auto', lineHeight: 1.5 }}>
-      <h1>Productos</h1>
+      <h1 style={{ fontFamily: 'var(--font-serif)', letterSpacing: '.2px' }}>Productos</h1>
 
       <p style={{ marginTop: 8 }}>
         Recursos digitales ByOlisJo (demo):
