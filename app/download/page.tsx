@@ -1,73 +1,42 @@
-'use client';
+// app/download/page.tsx
+export const dynamic = 'force-dynamic';
 
-import { Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+type SearchParams = { [key: string]: string | string[] | undefined };
 
-type Lang = 'es' | 'en';
-
-const copy = {
-  es: {
-    title: 'Descarga tu archivo',
-    auto: 'Tu ZIP se descargará automáticamente.',
-    fail: 'Faltan datos. Por favor vuelve a generar y pagar.',
-    tip: 'Si no inicia la descarga, revisa bloqueadores de pop-ups o abre el enlace directo.',
-  },
-  en: {
-    title: 'Download your file',
-    auto: 'Your ZIP will download automatically.',
-    fail: 'Missing data. Please go back, generate and pay.',
-    tip: 'If it does not start, check pop-up blockers or open the direct link.',
-  },
-} as const;
-
-function DownloadInner() {
-  const params = useSearchParams();
-  const lang = (params.get('lang') === 'en' ? 'en' : 'es') as Lang;
-  const t = copy[lang];
-
-  const file = params.get('file') || 'brand-kit-lite.zip';
-  const hasData = !!file;
-
-  // dispara descarga automática si hay archivo
-  if (hasData) {
-    try {
-      const a = document.createElement('a');
-      a.href = `/api/zip?file=${encodeURIComponent(file)}&lang=${lang}`;
-      a.download = file;
-      a.style.display = 'none';
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-    } catch {}
-  }
+export default function Download({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}) {
+  const tokenParam = searchParams?.token;
+  const token = Array.isArray(tokenParam) ? tokenParam[0] : tokenParam;
 
   return (
-    <main style={{ maxWidth: 980, margin: '0 auto', padding: '1.5rem' }}>
-      <section style={{ border: '1px solid #e9e2d9', background: '#fbf7f0', padding: '16px', borderRadius: 8 }}>
-        <h2 className="font-serif" style={{ fontSize: 22, marginBottom: 8 }}>
-          {t.title}
-        </h2>
+    <main style={{ padding: 24, maxWidth: 720, margin: '0 auto', lineHeight: 1.5 }}>
+      <h1>Descargas</h1>
 
-        {hasData ? (
-          <>
-            <p>{t.auto}</p>
-            <p style={{ opacity: 0.7, marginTop: 8 }}>{t.tip}</p>
-          </>
-        ) : (
-          <p style={{ color: '#a33' }}>{t.fail}</p>
-        )}
-      </section>
+      {token ? (
+        <p>Token recibido: <code>{token}</code></p>
+      ) : (
+        <>
+          <p>Agrega un token para probar: <code>/download?token=123</code></p>
+          <form method="GET" style={{ display: 'flex', gap: 12, marginTop: 12 }}>
+            <input
+              name="token"
+              placeholder="Escribe un token…"
+              style={{ flex: 1, padding: 10, borderRadius: 8, border: '1px solid #ccc' }}
+            />
+            <button type="submit" style={{ padding: '10px 16px', borderRadius: 8, border: '1px solid #333' }}>
+              Enviar
+            </button>
+          </form>
+        </>
+      )}
+
+      <p style={{ marginTop: 16 }}>
+        <a href="/" style={{ textDecoration: 'underline' }}>← Volver al inicio</a>
+      </p>
     </main>
   );
 }
-
-export default function Page() {
-  // ⬇️ IMPORTANTE: envolver en Suspense a quien usa useSearchParams()
-  return (
-    <Suspense fallback={<main style={{ maxWidth: 980, margin: '0 auto', padding: '1.5rem' }}>Cargando…</main>}>
-      <DownloadInner />
-    </Suspense>
-  );
-}
-
 
