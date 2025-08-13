@@ -17,12 +17,12 @@ const inter = Inter({
 });
 
 const colors = {
-  bg: '#efe6d8',         // beige base
-  panel: '#f6eee2',      // panel suave
-  text: '#201810',       // café oscuro
-  line: '#e0d2bd',       // borde claro
-  gold: '#b89e7a',       // dorado suave
-  goldDark: '#8e7759',   // dorado más oscuro (hover)
+  bg: '#efe6d8',
+  panel: '#f6eee2',
+  text: '#201810',
+  line: '#e0d2bd',
+  gold: '#b89e7a',
+  goldDark: '#8e7759',
   white: '#fff',
 };
 
@@ -35,13 +35,7 @@ const btn = {
     color: colors.text,
     textDecoration: 'none',
     boxShadow: '0 1px 0 rgba(0,0,0,0.03)',
-    transition: 'all .15s ease',
     fontWeight: 600,
-  } as React.CSSProperties,
-  hover: {
-    background: '#fffaf2',
-    borderColor: colors.goldDark,
-    transform: 'translateY(-1px)',
   } as React.CSSProperties,
 };
 
@@ -80,7 +74,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               gap: 16,
             }}
           >
-            {/* Marca */}
             <a
               href="/"
               style={{
@@ -95,52 +88,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               ByOlisJo<span style={{ fontWeight: 500, opacity: 0.85 }}> Brand Kit Lite</span>
             </a>
 
-            {/* Nav */}
             <nav style={{ display: 'flex', gap: 10 }}>
-              <a
-                href="/"
-                style={btn.base}
-                onMouseOver={(e) =>
-                  Object.assign((e.currentTarget as HTMLAnchorElement).style, btn.hover)
-                }
-                onMouseOut={(e) =>
-                  Object.assign((e.currentTarget as HTMLAnchorElement).style, btn.base)
-                }
-              >
-                Inicio
-              </a>
-              <a
-                href="/productos"
-                style={btn.base}
-                onMouseOver={(e) =>
-                  Object.assign((e.currentTarget as HTMLAnchorElement).style, btn.hover)
-                }
-                onMouseOut={(e) =>
-                  Object.assign((e.currentTarget as HTMLAnchorElement).style, btn.base)
-                }
-              >
-                Productos
-              </a>
-              <a
-                href="/download"
-                style={btn.base}
-                onMouseOver={(e) =>
-                  Object.assign((e.currentTarget as HTMLAnchorElement).style, btn.hover)
-                }
-                onMouseOut={(e) =>
-                  Object.assign((e.currentTarget as HTMLAnchorElement).style, btn.base)
-                }
-              >
-                Descargas
-              </a>
+              <a href="/" style={btn.base}>Inicio</a>
+              <a href="/productos" style={btn.base}>Productos</a>
+              <a href="/download" style={btn.base}>Descargas</a>
+              {/* Si creaste /tienda, puedes dejar este también */}
+              {/* <a href="/tienda" style={btn.base}>Tienda</a> */}
             </nav>
           </div>
         </header>
 
-        {/* CONTENIDO */}
         <main style={{ minHeight: '72vh' }}>{children}</main>
 
-        {/* FOOTER */}
         <footer
           style={{
             borderTop: `1px solid ${colors.line}`,
