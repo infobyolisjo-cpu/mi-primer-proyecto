@@ -33,10 +33,7 @@ async function getBrandProposal(q: string): Promise<BrandProposal | null> {
       },
       typography: {
         type: "object",
-        properties: {
-          heading: { type: "string" },
-          body: { type: "string" }
-        },
+        properties: { heading: { type: "string" }, body: { type: "string" } },
         required: ["heading", "body"],
         additionalProperties: false
       },
@@ -110,6 +107,7 @@ export default async function Home({ searchParams }: { searchParams: SearchParam
       <h1 style={{ fontFamily: 'var(--font-serif)', letterSpacing: '.2px', marginBottom: 4 }}>Inicio</h1>
       <p style={{ marginTop: 0, opacity: 0.9 }}>Bienvenida a ByOlisJo</p>
 
+      {/* Panel buscador */}
       <section
         style={{
           marginTop: 24,
@@ -165,6 +163,7 @@ export default async function Home({ searchParams }: { searchParams: SearchParam
         </div>
       </section>
 
+      {/* Resultados IA */}
       {q && (
         <section style={{ marginTop: 28 }}>
           <h2 style={{ marginTop: 0 }}>Propuesta de marca (IA)</h2>
@@ -190,30 +189,13 @@ export default async function Home({ searchParams }: { searchParams: SearchParam
                 alignItems: 'start',
               }}
             >
-              <div
-                style={{
-                  border: `1px solid ${ui.panelBorder}`,
-                  borderRadius: 14,
-                  padding: 16,
-                  background: ui.panelBg,
-                  boxShadow: ui.shadow,
-                }}
-              >
+              {/* Paleta */}
+              <div style={{ border: `1px solid ${ui.panelBorder}`, borderRadius: 14, padding: 16, background: ui.panelBg, boxShadow: ui.shadow }}>
                 <h3 style={{ marginTop: 0 }}>Paleta</h3>
                 <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
                   {proposal.palette.map((c) => (
                     <div key={c.hex} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span
-                        title={c.hex}
-                        style={{
-                          width: 32,
-                          height: 32,
-                          borderRadius: 8,
-                          border: '1px solid rgba(0,0,0,0.1)',
-                          background: c.hex,
-                          display: 'inline-block',
-                        }}
-                      />
+                      <span title={c.hex} style={{ width: 32, height: 32, borderRadius: 8, border: '1px solid rgba(0,0,0,0.1)', background: c.hex, display: 'inline-block' }} />
                       <div style={{ fontSize: 14 }}>
                         <div><strong>{c.name}</strong></div>
                         <code>{c.hex}</code>
@@ -223,15 +205,8 @@ export default async function Home({ searchParams }: { searchParams: SearchParam
                 </div>
               </div>
 
-              <div
-                style={{
-                  border: `1px solid ${ui.panelBorder}`,
-                  borderRadius: 14,
-                  padding: 16,
-                  background: ui.panelBg,
-                  boxShadow: ui.shadow,
-                }}
-              >
+              {/* Tipografías */}
+              <div style={{ border: `1px solid ${ui.panelBorder}`, borderRadius: 14, padding: 16, background: ui.panelBg, boxShadow: ui.shadow }}>
                 <h3 style={{ marginTop: 0 }}>Tipografías</h3>
                 <p style={{ margin: 0 }}>
                   <strong>Títulos:</strong> {proposal.typography.heading}<br />
@@ -239,59 +214,28 @@ export default async function Home({ searchParams }: { searchParams: SearchParam
                 </p>
               </div>
 
-              <div
-                style={{
-                  border: `1px solid ${ui.panelBorder}`,
-                  borderRadius: 14,
-                  padding: 16,
-                  background: ui.panelBg,
-                  boxShadow: ui.shadow,
-                }}
-              >
+              {/* Mood */}
+              <div style={{ border: `1px solid ${ui.panelBorder}`, borderRadius: 14, padding: 16, background: ui.panelBg, boxShadow: ui.shadow }}>
                 <h3 style={{ marginTop: 0 }}>Mood</h3>
                 <ul style={{ margin: '8px 0 0 18px' }}>
                   {proposal.mood.map((m, i) => <li key={i}>{m}</li>)}
                 </ul>
               </div>
 
-              <div
-                style={{
-                  border: `1px solid ${ui.panelBorder}`,
-                  borderRadius: 14,
-                  padding: 16,
-                  background: ui.panelBg,
-                  boxShadow: ui.shadow,
-                }}
-              >
+              {/* Keywords */}
+              <div style={{ border: `1px solid ${ui.panelBorder}`, borderRadius: 14, padding: 16, background: ui.panelBg, boxShadow: ui.shadow }}>
                 <h3 style={{ marginTop: 0 }}>Keywords</h3>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                   {proposal.keywords.map((k, i) => (
-                    <span
-                      key={i}
-                      style={{
-                        border: `1px solid #b89e7a`,
-                        borderRadius: 999,
-                        padding: '6px 10px',
-                        background: '#fff',
-                        fontSize: 13,
-                      }}
-                    >
+                    <span key={i} style={{ border: `1px solid #b89e7a`, borderRadius: 999, padding: '6px 10px', background: '#fff', fontSize: 13 }}>
                       {k}
                     </span>
                   ))}
                 </div>
               </div>
 
-              <div
-                style={{
-                  gridColumn: '1 / -1',
-                  border: `1px solid ${ui.panelBorder}`,
-                  borderRadius: 14,
-                  padding: 16,
-                  background: ui.panelBg,
-                  boxShadow: ui.shadow,
-                }}
-              >
+              {/* Pitch */}
+              <div style={{ gridColumn: '1 / -1', border: `1px solid ${ui.panelBorder}`, borderRadius: 14, padding: 16, background: ui.panelBg, boxShadow: ui.shadow }}>
                 <h3 style={{ marginTop: 0 }}>Elevator pitch</h3>
                 <p style={{ margin: 0 }}>{proposal.elevatorPitch}</p>
               </div>
@@ -306,4 +250,3 @@ export default async function Home({ searchParams }: { searchParams: SearchParam
     </main>
   );
 }
-
