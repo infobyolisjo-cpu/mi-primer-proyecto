@@ -22,7 +22,6 @@ const colors = {
   text: '#201810',
   line: '#e0d2bd',
   gold: '#b89e7a',
-  goldDark: '#8e7759',
   white: '#fff',
 };
 
@@ -44,12 +43,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="es">
       <body
         className={`${inter.variable} ${playfair.variable}`}
-        style={{
-          background: colors.bg,
-          color: colors.text,
-          fontFamily: 'var(--font-sans)',
-          margin: 0,
-        }}
+        style={{ background: colors.bg, color: colors.text, fontFamily: 'var(--font-sans)', margin: 0 }}
       >
         {/* HEADER */}
         <header
@@ -92,20 +86,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <a href="/" style={btn.base}>Inicio</a>
               <a href="/productos" style={btn.base}>Productos</a>
               <a href="/download" style={btn.base}>Descargas</a>
-              {/* Si creaste /tienda, puedes dejar este también */}
-              {/* <a href="/tienda" style={btn.base}>Tienda</a> */}
             </nav>
           </div>
         </header>
 
+        {/* CONTENIDO */}
         <main style={{ minHeight: '72vh' }}>{children}</main>
 
-        <footer
-          style={{
-            borderTop: `1px solid ${colors.line}`,
-            background: colors.panel,
-          }}
-        >
+        {/* FOOTER */}
+        <footer style={{ borderTop: `1px solid ${colors.line}`, background: colors.panel }}>
           <div
             style={{
               maxWidth: 1100,
@@ -127,5 +116,3 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     </html>
   );
 }
-
-
