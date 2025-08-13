@@ -1,4 +1,6 @@
 // app/page.tsx
+export const dynamic = 'force-dynamic';
+
 type SearchParams = { [key: string]: string | string[] | undefined };
 
 export default function Home({
@@ -9,9 +11,8 @@ export default function Home({
   const qParam = searchParams.q;
   const q = Array.isArray(qParam) ? qParam[0] : qParam;
 
-  // ...tu lógica usando q sin hooks de cliente
   return (
-    <main>
+    <main style={{ padding: 24 }}>
       <h1>Inicio</h1>
       {q ? <p>Buscando: {q}</p> : <p>Bienvenida a ByOlisJo</p>}
     </main>
