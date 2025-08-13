@@ -1,14 +1,7 @@
 // app/productos/page.tsx
 export const dynamic = 'force-dynamic';
 
-type Item = {
-  id: string;
-  title: string;
-  desc: string;
-  price: string;
-  ctaHref: string;
-  ctaText: string;
-};
+type Item = { id: string; title: string; desc: string; price: string; ctaHref: string; ctaText: string; };
 
 export default function Productos() {
   const ui = {
@@ -27,54 +20,18 @@ export default function Productos() {
 
   return (
     <main style={{ padding: 24, maxWidth: 1100, margin: '0 auto', lineHeight: 1.6 }}>
-      <h1 style={{ fontFamily: 'var(--font-serif)', letterSpacing: '.2px', marginBottom: 8 }}>
-        Productos
-      </h1>
-      <p style={{ marginTop: 0, opacity: 0.9 }}>
-        Recursos digitales ByOlisJo (demo). Estilo premium, minimal — beige & gold.
-      </p>
+      <h1 style={{ fontFamily: 'var(--font-serif)', letterSpacing: '.2px', marginBottom: 8 }}>Productos</h1>
+      <p style={{ marginTop: 0, opacity: 0.9 }}>Recursos digitales ByOlisJo (demo). Estilo premium, minimal — beige & gold.</p>
 
-      <section
-        style={{
-          marginTop: 20,
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-          gap: 16,
-        }}
-      >
+      <section style={{ marginTop: 20, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16 }}>
         {items.map((it) => (
-          <article
-            key={it.id}
-            style={{
-              border: `1px solid ${ui.panelBorder}`,
-              background: ui.panelBg,
-              borderRadius: 14,
-              padding: 16,
-              boxShadow: ui.cardShadow,
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 10,
-              minHeight: 190,
-            }}
-          >
+          <article key={it.id} style={{ border: `1px solid ${ui.panelBorder}`, background: ui.panelBg, borderRadius: 14, padding: 16, boxShadow: ui.cardShadow, display: 'flex', flexDirection: 'column', gap: 10, minHeight: 190 }}>
             <h3 style={{ margin: 0, fontSize: 20 }}>{it.title}</h3>
             <p style={{ margin: 0, opacity: 0.95 }}>{it.desc}</p>
 
             <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
               <strong>{it.price}</strong>
-              <a
-                href={it.ctaHref}
-                style={{
-                  padding: '10px 14px',
-                  borderRadius: 12,
-                  border: `1px solid ${ui.btnBorder}`,
-                  background: '#fff',
-                  color: ui.text,
-                  textDecoration: 'none',
-                  fontWeight: 600,
-                  boxShadow: '0 1px 0 rgba(0,0,0,0.03)',
-                }}
-              >
+              <a href={it.ctaHref} style={{ padding: '10px 14px', borderRadius: 12, border: `1px solid ${ui.btnBorder}`, background: '#fff', color: ui.text, textDecoration: 'none', fontWeight: 600, boxShadow: '0 1px 0 rgba(0,0,0,0.03)' }}>
                 {it.ctaText}
               </a>
             </div>
@@ -83,10 +40,7 @@ export default function Productos() {
       </section>
 
       <p style={{ marginTop: 20 }}>
-        ¿Dudas?{' '}
-        <a href="https://wa.me/00000000000" target="_blank" rel="noopener" style={{ textDecoration: 'underline' }}>
-          Escríbeme por WhatsApp
-        </a>
+        ¿Dudas? <a href="https://wa.me/00000000000" target="_blank" rel="noopener" style={{ textDecoration: 'underline' }}>Escríbeme por WhatsApp</a>
       </p>
 
       <p style={{ marginTop: 8 }}>
@@ -95,4 +49,3 @@ export default function Productos() {
     </main>
   );
 }
-
