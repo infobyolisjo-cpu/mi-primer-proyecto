@@ -39,36 +39,7 @@ export default function Home({
         © 2025 ByOlisJo. For testing purposes only.
       </footer>
 
-      {/* Botones para navegar */}
-      <nav style={{ marginTop: 24, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-        <a
-          href="/productos"
-          style={{
-            display: 'inline-block',
-            padding: '10px 16px',
-            backgroundColor: '#f0f0f0',
-            borderRadius: 8,
-            textDecoration: 'none',
-            border: '1px solid #333'
-          }}
-        >
-          Ver productos
-        </a>
-
-        <a
-          href="/download"
-          style={{
-            display: 'inline-block',
-            padding: '10px 16px',
-            backgroundColor: '#f0f0f0',
-            borderRadius: 8,
-            textDecoration: 'none',
-            border: '1px solid #333'
-          }}
-        >
-          Ir a descargas
-        </a>
-      </nav>
+      
       {/* Botones para navegar */}
 <nav style={{ marginTop: 24, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
   <a
