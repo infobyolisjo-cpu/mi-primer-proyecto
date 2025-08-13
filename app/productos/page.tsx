@@ -127,7 +127,6 @@ export default function Productos() {
         ))}
       </section>
 
-      {/* Acceso rápido */}
       <p style={{ marginTop: 20 }}>
         ¿Dudas?{' '}
         <a href="https://wa.me/00000000000" target="_blank" rel="noopener" style={{ textDecoration: 'underline' }}>
@@ -141,3 +140,4 @@ export default function Productos() {
     </main>
   );
 }
+
