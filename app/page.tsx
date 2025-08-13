@@ -3,7 +3,120 @@ export const dynamic = 'force-dynamic';
 
 type SearchParams = { [key: string]: string | string[] | undefined };
 
-export default function Home({
+type BrandProposal = {
+  palette: { name: string; hex: string }[];
+  typography: { heading: string; body: string };
+  mood: string[];
+  keywords: string[];
+  elevatorPitch: string;
+};
+
+// ===== Helper: llama a OpenAI desde el servidor (sin exponer tu key) =====
+async function getBrandProposal(q: string): Promise<BrandProposal | null> {
+  if (!process.env.OPENAI_API_KEY) {
+    return null; // sin key no hacemos nada
+  }
+
+  // Esquema JSON que esperamos (salida estructurada)
+  const schema = {
+    type: "object",
+    properties: {
+      palette: {
+        type: "array",
+        minItems: 3,
+        maxItems: 5,
+        items: {
+          type: "object",
+          properties: {
+            name: { type: "string" },
+            hex: { type: "string", pattern: "^#([0-9a-fA-F]{6})$" }
+          },
+          required: ["name", "hex"],
+          additionalProperties: false
+        }
+      },
+      typography: {
+        type: "object",
+        properties: {
+          heading: { type: "string" },
+          body: { type: "string" }
+        },
+        required: ["heading", "body"],
+        additionalProperties: false
+      },
+      mood: {
+        type: "array",
+        minItems: 3,
+        maxItems: 6,
+        items: { type: "string" }
+      },
+      keywords: {
+        type: "array",
+        minItems: 3,
+        maxItems: 8,
+        items: { type: "string" }
+      },
+      elevatorPitch: { type: "string" }
+    },
+    required: ["palette", "typography", "mood", "keywords", "elevatorPitch"],
+    additionalProperties: false
+  };
+
+  const prompt =
+    `Eres una estratega de marca de ByOlisJo. A partir de la descripción del usuario, devuelve una propuesta de identidad breve y accionable.
+- Responde SOLO en JSON válido siguiendo el esquema.
+- Colores en formato HEX (#RRGGBB).
+- Tipografías: sugiere familias comunes de Google (ej. Playfair Display, Inter, Lora, Poppins).
+- Sé concisa y enfocada en branding.
+
+Descripción del usuario: """${q}"""`;
+
+  // Llamada a OpenAI Responses API con salida JSON estricta
+  const res = await fetch("https://api.openai.com/v1/responses", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "gpt-4o-mini",
+      input: prompt,
+      response_format: {
+        type: "json_schema",
+        json_schema: {
+          name: "brand_proposal",
+          schema,
+          strict: true
+        }
+      }
+    })
+  });
+
+  if (!res.ok) {
+    console.error("OpenAI error:", await res.text());
+    return null;
+  }
+
+  const data = await res.json();
+
+  // La Responses API expone un texto consolidado; además, incluimos fallback.
+  const text =
+    data.output_text ??
+    data.output?.[0]?.content?.[0]?.text ??
+    data.choices?.[0]?.message?.content ??
+    "";
+
+  try {
+    const parsed: BrandProposal = JSON.parse(text);
+    return parsed;
+  } catch (e) {
+    console.error("No se pudo parsear JSON:", e, text);
+    return null;
+  }
+}
+
+// ======= Componente de página (Server Component) =======
+export default async function Home({
   searchParams,
 }: {
   searchParams: SearchParams;
@@ -11,7 +124,6 @@ export default function Home({
   const qParam = searchParams?.q;
   const q = Array.isArray(qParam) ? qParam[0] : qParam;
 
-  // Paleta local para el panel y controles
   const ui = {
     panelBg: '#f6eee2',
     panelBorder: '#e0d2bd',
@@ -24,8 +136,12 @@ export default function Home({
     shadow: '0 6px 18px rgba(0,0,0,0.06)',
   } as const;
 
-  // Handlers de hover (sin hooks, seguros en server)
-  const onBtnOver = (e: React.MouseEvent<HTMLButtonElement>) => {
+  let proposal: BrandProposal | null = null;
+  if (q) {
+    proposal = await getBrandProposal(q);
+  }
+
+  const onBtnOver = (e: any) => {
     Object.assign(e.currentTarget.style, {
       background: ui.btnHoverBg,
       borderColor: ui.btnHoverBorder,
@@ -34,7 +150,7 @@ export default function Home({
       cursor: 'pointer',
     });
   };
-  const onBtnOut = (e: React.MouseEvent<HTMLButtonElement>) => {
+  const onBtnOut = (e: any) => {
     Object.assign(e.currentTarget.style, {
       background: '#fff',
       borderColor: ui.btnBorder,
@@ -44,11 +160,11 @@ export default function Home({
   };
 
   return (
-    <main style={{ padding: 24, maxWidth: 820, margin: '0 auto', lineHeight: 1.6 }}>
+    <main style={{ padding: 24, maxWidth: 900, margin: '0 auto', lineHeight: 1.6 }}>
       <h1 style={{ fontFamily: 'var(--font-serif)', letterSpacing: '.2px', marginBottom: 4 }}>Inicio</h1>
       <p style={{ marginTop: 0, opacity: 0.9 }}>Bienvenida a ByOlisJo</p>
 
-      {/* Panel del buscador, más premium */}
+      {/* Panel del buscador */}
       <section
         style={{
           marginTop: 24,
@@ -65,7 +181,7 @@ export default function Home({
           <input
             name="q"
             defaultValue={q ?? ''}
-            placeholder="Escribe una palabra clave…"
+            placeholder="Ej.: “moderna, femenina, elegante en beige y dorado”"
             style={{
               flex: 1,
               padding: '12px 14px',
@@ -76,12 +192,12 @@ export default function Home({
             }}
             onFocus={(e) => {
               e.currentTarget.style.borderColor = ui.btnBorder;
-              e.currentTarget.style.boxShadow = '0 0 0 3px rgba(184,158,122,0.20)';
+              (e.currentTarget as HTMLInputElement).style.boxShadow = '0 0 0 3px rgba(184,158,122,0.20)';
               e.currentTarget.style.background = '#fff';
             }}
             onBlur={(e) => {
               e.currentTarget.style.borderColor = ui.inputBorder;
-              e.currentTarget.style.boxShadow = 'none';
+              (e.currentTarget as HTMLInputElement).style.boxShadow = 'none';
               e.currentTarget.style.background = ui.inputBg;
             }}
           />
@@ -111,11 +227,151 @@ export default function Home({
             </p>
           ) : (
             <p style={{ margin: 0 }}>
-              Tip: prueba con <code>?q=branding</code>
+              Tip: prueba con <code>moderna, femenina, elegante en beige y dorado</code>
             </p>
           )}
         </div>
       </section>
+
+      {/* Resultados de la IA */}
+      {q && (
+        <section style={{ marginTop: 28 }}>
+          <h2 style={{ marginTop: 0 }}>Propuesta de marca (IA)</h2>
+
+          {!process.env.OPENAI_API_KEY && (
+            <div style={{ padding: 12, border: '1px solid #e99', borderRadius: 10, background: '#fff5f5' }}>
+              Falta configurar <code>OPENAI_API_KEY</code> en Vercel.
+            </div>
+          )}
+
+          {process.env.OPENAI_API_KEY && !proposal && (
+            <div style={{ padding: 12, border: '1px solid #e0d2bd', borderRadius: 10, background: '#fffaf2' }}>
+              No se pudo generar la propuesta en este intento. Vuelve a intentar con otra descripción.
+            </div>
+          )}
+
+          {proposal && (
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '1.1fr 1fr',
+                gap: 16,
+                alignItems: 'start',
+              }}
+            >
+              {/* Paleta */}
+              <div
+                style={{
+                  border: `1px solid ${ui.panelBorder}`,
+                  borderRadius: 14,
+                  padding: 16,
+                  background: ui.panelBg,
+                  boxShadow: ui.shadow,
+                }}
+              >
+                <h3 style={{ marginTop: 0 }}>Paleta</h3>
+                <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                  {proposal.palette.map((c) => (
+                    <div key={c.hex} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span
+                        title={c.hex}
+                        style={{
+                          width: 32,
+                          height: 32,
+                          borderRadius: 8,
+                          border: '1px solid rgba(0,0,0,0.1)',
+                          background: c.hex,
+                          display: 'inline-block',
+                        }}
+                      />
+                      <div style={{ fontSize: 14 }}>
+                        <div><strong>{c.name}</strong></div>
+                        <code>{c.hex}</code>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Tipografías */}
+              <div
+                style={{
+                  border: `1px solid ${ui.panelBorder}`,
+                  borderRadius: 14,
+                  padding: 16,
+                  background: ui.panelBg,
+                  boxShadow: ui.shadow,
+                }}
+              >
+                <h3 style={{ marginTop: 0 }}>Tipografías</h3>
+                <p style={{ margin: 0 }}>
+                  <strong>Títulos:</strong> {proposal.typography.heading}<br />
+                  <strong>Texto:</strong> {proposal.typography.body}
+                </p>
+              </div>
+
+              {/* Mood & keywords */}
+              <div
+                style={{
+                  border: `1px solid ${ui.panelBorder}`,
+                  borderRadius: 14,
+                  padding: 16,
+                  background: ui.panelBg,
+                  boxShadow: ui.shadow,
+                }}
+              >
+                <h3 style={{ marginTop: 0 }}>Mood</h3>
+                <ul style={{ margin: '8px 0 0 18px' }}>
+                  {proposal.mood.map((m, i) => <li key={i}>{m}</li>)}
+                </ul>
+              </div>
+
+              <div
+                style={{
+                  border: `1px solid ${ui.panelBorder}`,
+                  borderRadius: 14,
+                  padding: 16,
+                  background: ui.panelBg,
+                  boxShadow: ui.shadow,
+                }}
+              >
+                <h3 style={{ marginTop: 0 }}>Keywords</h3>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  {proposal.keywords.map((k, i) => (
+                    <span
+                      key={i}
+                      style={{
+                        border: `1px solid ${ui.btnBorder}`,
+                        borderRadius: 999,
+                        padding: '6px 10px',
+                        background: '#fff',
+                        fontSize: 13,
+                      }}
+                    >
+                      {k}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Pitch */}
+              <div
+                style={{
+                  gridColumn: '1 / -1',
+                  border: `1px solid ${ui.panelBorder}`,
+                  borderRadius: 14,
+                  padding: 16,
+                  background: ui.panelBg,
+                  boxShadow: ui.shadow,
+                }}
+              >
+                <h3 style={{ marginTop: 0 }}>Elevator pitch</h3>
+                <p style={{ margin: 0 }}>{proposal.elevatorPitch}</p>
+              </div>
+            </div>
+          )}
+        </section>
+      )}
 
       <footer style={{ marginTop: 40, opacity: 0.8 }}>
         © {new Date().getFullYear()} ByOlisJo. For testing purposes only.
@@ -123,3 +379,4 @@ export default function Home({
     </main>
   );
 }
+
