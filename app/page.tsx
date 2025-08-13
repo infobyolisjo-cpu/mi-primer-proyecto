@@ -11,13 +11,9 @@ type BrandProposal = {
   elevatorPitch: string;
 };
 
-// ===== Helper: llama a OpenAI desde el servidor (sin exponer tu key) =====
 async function getBrandProposal(q: string): Promise<BrandProposal | null> {
-  if (!process.env.OPENAI_API_KEY) {
-    return null; // sin key no hacemos nada
-  }
+  if (!process.env.OPENAI_API_KEY) return null;
 
-  // Esquema JSON que esperamos (salida estructurada)
   const schema = {
     type: "object",
     properties: {
@@ -44,18 +40,8 @@ async function getBrandProposal(q: string): Promise<BrandProposal | null> {
         required: ["heading", "body"],
         additionalProperties: false
       },
-      mood: {
-        type: "array",
-        minItems: 3,
-        maxItems: 6,
-        items: { type: "string" }
-      },
-      keywords: {
-        type: "array",
-        minItems: 3,
-        maxItems: 8,
-        items: { type: "string" }
-      },
+      mood: { type: "array", minItems: 3, maxItems: 6, items: { type: "string" } },
+      keywords: { type: "array", minItems: 3, maxItems: 8, items: { type: "string" } },
       elevatorPitch: { type: "string" }
     },
     required: ["palette", "typography", "mood", "keywords", "elevatorPitch"],
@@ -63,15 +49,10 @@ async function getBrandProposal(q: string): Promise<BrandProposal | null> {
   };
 
   const prompt =
-    `Eres una estratega de marca de ByOlisJo. A partir de la descripción del usuario, devuelve una propuesta de identidad breve y accionable.
-- Responde SOLO en JSON válido siguiendo el esquema.
-- Colores en formato HEX (#RRGGBB).
-- Tipografías: sugiere familias comunes de Google (ej. Playfair Display, Inter, Lora, Poppins).
-- Sé concisa y enfocada en branding.
+    `Eres una estratega de marca de ByOlisJo. Devuelve una propuesta breve y accionable en JSON siguiendo el esquema.
+Colores HEX (#RRGGBB). Tipografías de Google (Playfair, Inter, Lora, Poppins, etc).
+Descripción: """${q}"""`;
 
-Descripción del usuario: """${q}"""`;
-
-  // Llamada a OpenAI Responses API con salida JSON estricta
   const res = await fetch("https://api.openai.com/v1/responses", {
     method: "POST",
     headers: {
@@ -83,11 +64,7 @@ Descripción del usuario: """${q}"""`;
       input: prompt,
       response_format: {
         type: "json_schema",
-        json_schema: {
-          name: "brand_proposal",
-          schema,
-          strict: true
-        }
+        json_schema: { name: "brand_proposal", schema, strict: true }
       }
     })
   });
@@ -98,29 +75,20 @@ Descripción del usuario: """${q}"""`;
   }
 
   const data = await res.json();
-
-  // La Responses API expone un texto consolidado; además, incluimos fallback.
   const text =
     data.output_text ??
     data.output?.[0]?.content?.[0]?.text ??
-    data.choices?.[0]?.message?.content ??
-    "";
+    data.choices?.[0]?.message?.content ?? "";
 
   try {
-    const parsed: BrandProposal = JSON.parse(text);
-    return parsed;
+    return JSON.parse(text) as BrandProposal;
   } catch (e) {
-    console.error("No se pudo parsear JSON:", e, text);
+    console.error("Parse JSON error:", e, text);
     return null;
   }
 }
 
-// ======= Componente de página (Server Component) =======
-export default async function Home({
-  searchParams,
-}: {
-  searchParams: SearchParams;
-}) {
+export default async function Home({ searchParams }: { searchParams: SearchParams }) {
   const qParam = searchParams?.q;
   const q = Array.isArray(qParam) ? qParam[0] : qParam;
 
@@ -131,40 +99,17 @@ export default async function Home({
     inputBg: '#fffdf8',
     text: '#201810',
     btnBorder: '#b89e7a',
-    btnHoverBorder: '#8e7759',
-    btnHoverBg: '#fffaf2',
     shadow: '0 6px 18px rgba(0,0,0,0.06)',
   } as const;
 
   let proposal: BrandProposal | null = null;
-  if (q) {
-    proposal = await getBrandProposal(q);
-  }
-
-  const onBtnOver = (e: any) => {
-    Object.assign(e.currentTarget.style, {
-      background: ui.btnHoverBg,
-      borderColor: ui.btnHoverBorder,
-      transform: 'translateY(-1px)',
-      boxShadow: ui.shadow,
-      cursor: 'pointer',
-    });
-  };
-  const onBtnOut = (e: any) => {
-    Object.assign(e.currentTarget.style, {
-      background: '#fff',
-      borderColor: ui.btnBorder,
-      transform: 'none',
-      boxShadow: '0 1px 0 rgba(0,0,0,0.03)',
-    });
-  };
+  if (q) proposal = await getBrandProposal(q);
 
   return (
     <main style={{ padding: 24, maxWidth: 900, margin: '0 auto', lineHeight: 1.6 }}>
       <h1 style={{ fontFamily: 'var(--font-serif)', letterSpacing: '.2px', marginBottom: 4 }}>Inicio</h1>
       <p style={{ marginTop: 0, opacity: 0.9 }}>Bienvenida a ByOlisJo</p>
 
-      {/* Panel del buscador */}
       <section
         style={{
           marginTop: 24,
@@ -190,16 +135,6 @@ export default async function Home({
               background: ui.inputBg,
               outline: 'none',
             }}
-            onFocus={(e) => {
-              e.currentTarget.style.borderColor = ui.btnBorder;
-              (e.currentTarget as HTMLInputElement).style.boxShadow = '0 0 0 3px rgba(184,158,122,0.20)';
-              e.currentTarget.style.background = '#fff';
-            }}
-            onBlur={(e) => {
-              e.currentTarget.style.borderColor = ui.inputBorder;
-              (e.currentTarget as HTMLInputElement).style.boxShadow = 'none';
-              e.currentTarget.style.background = ui.inputBg;
-            }}
           />
           <button
             type="submit"
@@ -211,10 +146,7 @@ export default async function Home({
               color: ui.text,
               fontWeight: 600,
               boxShadow: '0 1px 0 rgba(0,0,0,0.03)',
-              transition: 'all .15s ease',
             }}
-            onMouseOver={onBtnOver}
-            onMouseOut={onBtnOut}
           >
             Buscar
           </button>
@@ -233,7 +165,6 @@ export default async function Home({
         </div>
       </section>
 
-      {/* Resultados de la IA */}
       {q && (
         <section style={{ marginTop: 28 }}>
           <h2 style={{ marginTop: 0 }}>Propuesta de marca (IA)</h2>
@@ -259,7 +190,6 @@ export default async function Home({
                 alignItems: 'start',
               }}
             >
-              {/* Paleta */}
               <div
                 style={{
                   border: `1px solid ${ui.panelBorder}`,
@@ -293,7 +223,6 @@ export default async function Home({
                 </div>
               </div>
 
-              {/* Tipografías */}
               <div
                 style={{
                   border: `1px solid ${ui.panelBorder}`,
@@ -310,7 +239,6 @@ export default async function Home({
                 </p>
               </div>
 
-              {/* Mood & keywords */}
               <div
                 style={{
                   border: `1px solid ${ui.panelBorder}`,
@@ -341,7 +269,7 @@ export default async function Home({
                     <span
                       key={i}
                       style={{
-                        border: `1px solid ${ui.btnBorder}`,
+                        border: `1px solid #b89e7a`,
                         borderRadius: 999,
                         padding: '6px 10px',
                         background: '#fff',
@@ -354,7 +282,6 @@ export default async function Home({
                 </div>
               </div>
 
-              {/* Pitch */}
               <div
                 style={{
                   gridColumn: '1 / -1',
