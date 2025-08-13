@@ -1,28 +1,117 @@
-import './globals.css';
-import type { Metadata } from 'next';
-
-export const metadata: Metadata = {
+// app/layout.tsx
+export const metadata = {
   title: 'ByOlisJo Brand Kit Lite',
-  description: 'Generate a quick brand kit: palette, slogan, and logo',
+  description: 'Premium & minimal — beige & gold aesthetic',
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <html lang="en">
-      <body className="min-h-screen bg-[#f7f2ea] text-[#1f1b16]">
-        <div className="max-w-3xl mx-auto p-6">
-          <header className="py-6">
-            <h1 className="text-2xl md:text-3xl font-serif tracking-wide">
-              <span className="mr-2">ByOlisJo</span>
-              <span className="font-light">Brand Kit Lite</span>
-            </h1>
-            <p className="text-sm opacity-70 mt-1">Premium & minimal — beige & gold aesthetic</p>
-          </header>
-          {children}
-          <footer className="py-10 text-xs opacity-70">
-            © {new Date().getFullYear()} ByOlisJo. For testing purposes only.
-          </footer>
-        </div>
+    <html lang="es">
+      <body
+        style={{
+          backgroundColor: '#efe6d8', // beige suave
+          color: '#221b14',
+          fontFamily: 'system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif',
+          margin: 0,
+        }}
+      >
+        {/* Header global */}
+        <header
+          style={{
+            borderBottom: '1px solid #d9cbb6',
+            background: '#f5ede1',
+          }}
+        >
+          <div
+            style={{
+              maxWidth: 1024,
+              margin: '0 auto',
+              padding: '12px 16px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 12,
+            }}
+          >
+            <a href="/" style={{ fontWeight: 700, textDecoration: 'none', color: '#221b14' }}>
+              ByOlisJo<span style={{ fontWeight: 400 }}>Brand Kit Lite</span>
+            </a>
+
+            <nav style={{ display: 'flex', gap: 12 }}>
+              <a
+                href="/"
+                style={{
+                  padding: '8px 12px',
+                  borderRadius: 8,
+                  border: '1px solid #b89e7a',
+                  textDecoration: 'none',
+                  color: '#221b14',
+                  background: '#fff9f0',
+                }}
+              >
+                Inicio
+              </a>
+              <a
+                href="/productos"
+                style={{
+                  padding: '8px 12px',
+                  borderRadius: 8,
+                  border: '1px solid #b89e7a',
+                  textDecoration: 'none',
+                  color: '#221b14',
+                  background: '#fff9f0',
+                }}
+              >
+                Productos
+              </a>
+              <a
+                href="/download"
+                style={{
+                  padding: '8px 12px',
+                  borderRadius: 8,
+                  border: '1px solid #b89e7a',
+                  textDecoration: 'none',
+                  color: '#221b14',
+                  background: '#fff9f0',
+                }}
+              >
+                Descargas
+              </a>
+            </nav>
+          </div>
+        </header>
+
+        {/* Contenido de cada página */}
+        <main style={{ minHeight: '70vh' }}>{children}</main>
+
+        {/* Footer global */}
+        <footer
+          style={{
+            borderTop: '1px solid #d9cbb6',
+            background: '#f5ede1',
+          }}
+        >
+          <div
+            style={{
+              maxWidth: 1024,
+              margin: '0 auto',
+              padding: '16px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              gap: 12,
+              flexWrap: 'wrap',
+              fontSize: 14,
+              opacity: 0.9,
+            }}
+          >
+            <span>© {new Date().getFullYear()} ByOlisJo</span>
+            <span>Premium & minimal — beige & gold aesthetic</span>
+          </div>
+        </footer>
       </body>
     </html>
   );
